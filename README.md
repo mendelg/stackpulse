@@ -1,7 +1,5 @@
 # StackPulse
 
-
-
 ![logo](assets/logo.svg)
 
 StackPulse is a Flutter application that notifies users about new Stack Overflow questions for specified tags in real-time. Stay updated with the latest questions on Stack Overflow that matter to you!
@@ -27,6 +25,11 @@ StackPulse is a Flutter application that notifies users about new Stack Overflow
 1. Download the DMG file from the [releases page](https://github.com/mendelg/stackpulse/releases).
 2. Open the DMG file and drag the StackPulse app to your Applications folder.
 
+### Windows
+
+1. Download the ZIP file from the [releases page](https://github.com/mendelg/stackpulse/releases).
+2. Extract the ZIP file.
+3. Open the extracted folder and double-click `stackpulse.exe` to run the application.
 
 ## Usage
 
@@ -40,7 +43,6 @@ StackPulse is a Flutter application that notifies users about new Stack Overflow
 
 ### Main Screen
 ![Main Screen](screenshots/main_screen.png)
-
 
 ## Contributing
 
@@ -94,6 +96,22 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
     create-dmg 'build/macos/Build/Products/Release/YourApp.app' 'build/macos/Build/Products/Release/'
     ```
 
+### Windows (EXE)
+
+1. **Build the Windows app**: Run the following command in your project directory:
+
+    ```sh
+    flutter build windows --release
+    ```
+
+2. **Locate the App**: The generated app will be located at `build/windows/runner/Release`.
+
+3. **Package the Windows App**:
+   - Compress the contents of the `build/windows/runner/Release` directory into a ZIP file:
+     ```sh
+     cd build/windows/runner/Release
+     zip -r stackpulse-windows.zip *
+     ```
 
 ### Web
 
@@ -104,4 +122,3 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
     ```
 
 2. **Locate the Web Files**: The generated web files will be located at `build/web`.
-
