@@ -107,11 +107,7 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 2. **Locate the App**: The generated app will be located at `build/windows/runner/Release`.
 
 3. **Package the Windows App**:
-   - Compress the contents of the `build/windows/runner/Release` directory into a ZIP file:
-     ```sh
-     cd build/windows/runner/Release
-     zip -r stackpulse-windows.zip *
-     ```
+   - Compress the contents of the `build/windows/runner/Release` directory into a ZIP file.
 
 ### Web
 
