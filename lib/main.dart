@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,78 +7,65 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-// Conditional import for notification service
 import 'notification_service.dart'
-    if (dart.library.html) 'web_notification_service.dart';
+if (dart.library.html) 'web_notification_service.dart';
 import 'notification_service_interface.dart';
+import 'windows_notification_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initNotifications();
-  runApp(MyApp());
-}
-
-Future<void> initNotifications() async {
-  if (!kIsWeb) {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
-    final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-      macOS: initializationSettingsDarwin,
-    );
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse notificationResponse) {
-        final String? payload = notificationResponse.payload;
-        if (payload != null) {
-          launchUrl(Uri.parse(payload));
-        }
-      },
-    );
+  NotificationServiceInterface notificationService;
+  if (Platform.isWindows) {
+    notificationService = WindowsNotificationService();
+  } else {
+    notificationService = NotificationService();
+    await notificationService.initNotification();
   }
+  runApp(MyApp(notificationService));
 }
 
 class MyApp extends StatelessWidget {
+  final NotificationServiceInterface notificationService;
+
+  MyApp(this.notificationService);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'StackPulse',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: StackOverflowNotifier(),
+      home: StackOverflowNotifier(notificationService),
     );
   }
 }
 
 class StackOverflowNotifier extends StatefulWidget {
+  final NotificationServiceInterface notificationService;
+
+  StackOverflowNotifier(this.notificationService);
+
   @override
-  _StackOverflowNotifierState createState() => _StackOverflowNotifierState();
+  _StackOverflowNotifierState createState() =>
+      _StackOverflowNotifierState(notificationService);
 }
 
 class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
+  final NotificationServiceInterface notificationService;
+
+  _StackOverflowNotifierState(this.notificationService);
+
   WebSocketChannel? _channel;
   List<String> _tags = [];
   List<Map<String, dynamic>> _notifications = [];
   TextEditingController _tagController = TextEditingController();
   SharedPreferences? _prefs;
   bool _notificationsEnabled = false;
-  late NotificationServiceInterface _notificationService;
   final Set<String> _recentNotifications = {};
   final Set<String> _fetchedQuestionIds = {};
   final Duration _debounceDuration = Duration(seconds: 10);
@@ -87,12 +73,14 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
   @override
   void initState() {
     super.initState();
-    _notificationService = NotificationService();
     _initSharedPreferences();
     _connectWebSocket();
     _checkNotificationPermissions();
     _requestNotificationPermissions();
   }
+
+
+
 
   Future<void> _initSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
@@ -134,7 +122,7 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
     });
   }
 
-  void _handleMessage(message) {
+  void _handleMessage(message)async {
     final data = json.decode(message);
     if (data['action'] == 'hb') {
       _channel!.sink.add('pong');
@@ -142,12 +130,12 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
       final questionData = json.decode(data['data']);
       if (!_fetchedQuestionIds.contains(questionData['id'])) {
         _fetchedQuestionIds.add(questionData['id']);
-        _fetchQuestionDetails(questionData['id']);
+        await _fetchQuestionDetails(questionData['id']);
       }
     }
   }
 
-  void _fetchQuestionDetails(String questionId) async {
+  Future<void> _fetchQuestionDetails(String questionId) async {
     final response = await http.get(Uri.parse(
         'https://api.stackexchange.com/2.3/questions/$questionId?site=stackoverflow&filter=withbody'));
     if (response.statusCode == 200) {
@@ -166,25 +154,31 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
           Future.delayed(_debounceDuration, () {
             _recentNotifications.remove(question['link']);
           });
+        } else {
+          print("Notification not shown: enabled=$_notificationsEnabled, recent=${_recentNotifications.contains(question['link'])}");
         }
       }
+    } else {
+      print("Failed to fetch question details. Status code: ${response.statusCode}");
     }
   }
 
+  void _showNotification(String title, String url) async {
+
+    await notificationService.showNotification(
+        'New Stack Overflow Question', title, url);
+  }
   Future<void> _checkNotificationPermissions() async {
-    _notificationsEnabled = await _notificationService.checkPermissions();
+    _notificationsEnabled = await notificationService.checkPermissions();
     setState(() {});
+
   }
 
   Future<void> _requestNotificationPermissions() async {
-    _notificationsEnabled = await _notificationService.requestPermissions();
+    _notificationsEnabled = await notificationService.requestPermissions();
     setState(() {});
   }
 
-  void _showNotification(String title, String url) async {
-    _notificationService.showNotification(
-        'New Stack Overflow Question', title, url);
-  }
 
   void _addTag() {
     final newTag = _tagController.text.trim();
@@ -229,13 +223,12 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
       appBar: AppBar(
         title: SvgPicture.asset(
           'assets/logo.svg',
-          // fit: BoxFit.fill,
         ),
         centerTitle: true,
         actions: [
           ElevatedButton(
             onPressed:
-                _notificationsEnabled ? null : _requestNotificationPermissions,
+            _notificationsEnabled ? null : _requestNotificationPermissions,
             child: Text(_notificationsEnabled
                 ? 'Notifications Enabled'
                 : 'Enable Notifications'),
@@ -269,9 +262,9 @@ class _StackOverflowNotifierState extends State<StackOverflowNotifier> {
             spacing: 8,
             children: _tags
                 .map((tag) => Chip(
-                      label: Text(tag),
-                      onDeleted: () => _removeTag(tag),
-                    ))
+              label: Text(tag),
+              onDeleted: () => _removeTag(tag),
+            ))
                 .toList(),
           ),
           Align(

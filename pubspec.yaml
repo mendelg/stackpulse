@@ -44,6 +44,7 @@ dependencies:
   url_launcher: ^6.3.0
   js: ^0.7.1
   flutter_svg: ^2.0.10+1
+  windows_notification: ^1.2.0
 
 dev_dependencies:
   flutter_test:

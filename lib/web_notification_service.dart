@@ -4,6 +4,11 @@ import 'notification_service_interface.dart';
 
 class NotificationService implements NotificationServiceInterface {
   @override
+  Future<void> initNotification() async {
+    // No initialization needed for web notifications
+  }
+
+  @override
   Future<bool> checkPermissions() async {
     return js.context['Notification']['permission'] == 'granted';
   }

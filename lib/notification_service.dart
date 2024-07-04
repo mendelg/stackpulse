@@ -1,30 +1,29 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'notification_service_interface.dart';
 
 class NotificationService implements NotificationServiceInterface {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
+  @override
   Future<void> initNotification() async {
     if (kIsWeb) return;
 
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
     final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
+    DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
     final InitializationSettings initializationSettings =
-        InitializationSettings(
+    InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
@@ -47,21 +46,21 @@ class NotificationService implements NotificationServiceInterface {
     if (kIsWeb) return true;
     if (Platform.isIOS) {
       return await _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin>()
-              ?.requestPermissions(alert: true, badge: true, sound: true) ??
+          .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true) ??
           false;
     } else if (Platform.isMacOS) {
       return await _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  MacOSFlutterLocalNotificationsPlugin>()
-              ?.requestPermissions(alert: true, badge: true, sound: true) ??
+          .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true) ??
           false;
     } else if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>();
+      _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
       return await androidImplementation?.requestNotificationsPermission() ??
           false;
     }
@@ -74,14 +73,14 @@ class NotificationService implements NotificationServiceInterface {
     if (Platform.isIOS || Platform.isMacOS) {
       final bool? result = await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+          IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
       return result ?? false;
     } else if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>();
+      _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
       return await androidImplementation?.areNotificationsEnabled() ?? false;
     }
     return true;
@@ -90,10 +89,11 @@ class NotificationService implements NotificationServiceInterface {
   @override
   Future<void> showNotification(
       String title, String body, String payload) async {
+
     if (kIsWeb) return;
 
     const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
+    AndroidNotificationDetails(
       'stack_overflow_channel',
       'Stack Overflow Notifications',
       channelDescription: 'Notifications for new Stack Overflow questions',
@@ -102,7 +102,7 @@ class NotificationService implements NotificationServiceInterface {
     );
 
     const DarwinNotificationDetails darwinNotificationDetails =
-        DarwinNotificationDetails(
+    DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
