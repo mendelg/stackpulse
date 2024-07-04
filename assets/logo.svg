@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="622" height="124" viewBox="0 0 622 124">
+  <g fill="none" fill-rule="evenodd">
+    <!-- Unique bars inspired by Stack Overflow -->
+    <rect x="10" y="80" width="10" height="30" fill="#F58025"/>
+    <rect x="25" y="70" width="10" height="40" fill="#F58025"/>
+    <rect x="40" y="60" width="10" height="50" fill="#F58025"/>
+    <rect x="55" y="50" width="10" height="60" fill="#F58025"/>
+    <rect x="70" y="40" width="10" height="70" fill="#F58025"/>
+    
+    <!-- Pulse wave under the bars -->
+    <path stroke="#000000" stroke-width="4" d="M15 110 h10 l5-15 l10 30 l10-40 l10 20 h10" />
+    
+    <!-- StackPulse Text -->
+    <text x="110" y="85" fill="#000000" font-family="Arial, sans-serif" font-size="50" font-weight="bold">StackPulse</text>
+  </g>
+</svg>
