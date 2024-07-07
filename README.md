@@ -15,6 +15,14 @@ StackPulse is a Flutter application that notifies users about new Stack Overflow
 
 ## Installation
 
+### Web
+Visit:
+- https://mendelg.github.io/stackpulse/
+  
+Make sure to enable notifications in your Browser's Settings, as well as on the Notifications button on the top right of the actual app.
+
+
+
 ### Android
 
 1. Download the APK from the [releases page](https://github.com/mendelg/stackpulse/releases).
